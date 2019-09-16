@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   #
 
   s.name         = "MJNavigationBar"
-  s.version      = "1.0.0"
+  s.version      = "1.0.1"
   s.summary      = "设置导航栏"
 
   # This description is used to generate tags and improve search results.
@@ -25,7 +25,7 @@ Pod::Spec.new do |s|
   #   * Write the description between the DESC delimiters below.
   #   * Finally, don't worry about the indent, CocoaPods strips it!
   s.description  = <<-DESC
-  设置导航栏
+  设置导航栏,设置导航栏
                    DESC
 
   s.homepage     = "https://github.com/LiHongGui/MJNavigationBar.git"
