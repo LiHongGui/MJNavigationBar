@@ -10,6 +10,9 @@
 #import "YINMethodHook.h"
 
 @implementation UIViewController (MJNavigationBar)
+static char kWRIsLocalUsedKey;
+static char kWRWhiteistKey;
+static char kWRBlacklistKey;
 
 + (BOOL)isIphoneX {
     if ([UIApplication sharedApplication].statusBarFrame.size.height == 44) {
@@ -125,29 +128,36 @@
 
 
 - (void)changeNavWithSetting:(UIViewController *)vc{
-    UINavigationController *na = [self isKindOfClass:[UINavigationController class]]?(UINavigationController *)self:self.navigationController;
-    na.navigationBar.barTintColor = vc.y_navBarBgColor?: [UIColor blackColor];
-    na.navigationBar.tintColor = vc.y_navBarTextColor?: [UIColor whiteColor];
-    NSDictionary *attributes=[NSDictionary dictionaryWithObjectsAndKeys:vc.y_navBarTextColor?:[UIColor whiteColor],NSForegroundColorAttributeName,[UIFont systemFontOfSize:18],NSFontAttributeName,nil];
-    na.navigationBar.titleTextAttributes = attributes;
-    [[UIBarButtonItem appearance] setTitleTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys:[UIFont systemFontOfSize:15],NSFontAttributeName,nil] forState:UIControlStateNormal];
-    [[UIBarButtonItem appearance] setTitleTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys:[UIFont systemFontOfSize:15],NSFontAttributeName,nil] forState:UIControlStateSelected];
-    [[UIBarButtonItem appearance] setTitleTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys:[UIFont systemFontOfSize:15],NSFontAttributeName,nil] forState:UIControlStateHighlighted];
-//    na.navigationItem
-//    [na.navigationController.navigationBar setTitleTextAttributes:@{NSFontAttributeName:[UIFont systemFontOfSize:18],NSForegroundColorAttributeName:vc.y_navBarTextColor?:[UIColor whiteColor]}];
-//    [na.navigationItem.rightBarButtonItem setTitleTextAttributes:@{NSFontAttributeName:[UIFont systemFontOfSize:10],NSForegroundColorAttributeName:vc.y_navBarTextColor?:[UIColor whiteColor]} forState:UIControlStateNormal];
-//    [na.navigationItem.leftBarButtonItem setTitleTextAttributes:@{NSFontAttributeName:[UIFont systemFontOfSize:10],NSForegroundColorAttributeName:vc.y_navBarTextColor?:[UIColor whiteColor]} forState:UIControlStateNormal];
-    if(!vc.y_navLine){
-        vc.y_navLine = [self findHairlineImageViewUnder:na.navigationBar];
-    }
-    [vc setY_largeTitleMode:vc.y_largeTitleMode];
+    [self mj_setBlacklist:@[@"SpecialController",
+    @"TZPhotoPickerController",
+    @"TZGifPhotoPreviewController",
+    @"TZAlbumPickerController",
+    @"TZPhotoPreviewController",
+                            @"TZVideoPlayerController",@"TZImagePickerController"]];
+    NSString *vcStr = NSStringFromClass(vc.class);
+    NSLog(@"[self blacklist]:%@---vcStr:%@",[self blacklist],vcStr);
+    if (![[self blacklist] containsObject:vcStr]) {
+        UINavigationController *na = [self isKindOfClass:[UINavigationController class]]?(UINavigationController *)self:self.navigationController;
+        na.navigationBar.barTintColor = vc.y_navBarBgColor?: [UIColor blackColor];
+        na.navigationBar.tintColor = vc.y_navBarTextColor?: [UIColor whiteColor];
+        NSDictionary *attributes=[NSDictionary dictionaryWithObjectsAndKeys:vc.y_navBarTextColor?:[UIColor whiteColor],NSForegroundColorAttributeName,[UIFont systemFontOfSize:18],NSFontAttributeName,nil];
+        na.navigationBar.titleTextAttributes = attributes;
+        [[UIBarButtonItem appearance] setTitleTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys:[UIFont systemFontOfSize:15],NSFontAttributeName,nil] forState:UIControlStateNormal];
+        [[UIBarButtonItem appearance] setTitleTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys:[UIFont systemFontOfSize:15],NSFontAttributeName,nil] forState:UIControlStateSelected];
+        [[UIBarButtonItem appearance] setTitleTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys:[UIFont systemFontOfSize:15],NSFontAttributeName,nil] forState:UIControlStateHighlighted];
+
+        if(!vc.y_navLine){
+            vc.y_navLine = [self findHairlineImageViewUnder:na.navigationBar];
+        }
+        [vc setY_largeTitleMode:vc.y_largeTitleMode];
 
         vc.y_navLine.hidden = YES;
-    [self changeNavBarAlpha:self.y_navBarAlpha];
-    if (@available(iOS 11.0, *)) {
-//        na.navigationBar.largeTitleTextAttributes = attributes;
-    } else {
-        // Fallback on earlier versions
+        [self changeNavBarAlpha:self.y_navBarAlpha];
+        if (@available(iOS 11.0, *)) {
+            //        na.navigationBar.largeTitleTextAttributes = attributes;
+        } else {
+            // Fallback on earlier versions
+        }
     }
 }
 
@@ -223,6 +233,7 @@
 
 
 - (void)changeNavBarAlpha:(CGFloat)alpha{
+
     if (self.navigationController&&!self.navigationController.y_contentView) {
         UIView *view = [[UIView alloc] init];
         self.navigationController.y_contentView = view;
@@ -251,12 +262,23 @@
         self.edgesForExtendedLayout = UIRectEdgeTop;
         self.y_navLine.hidden = YES;
     }else{
-//        self.y_navLine.hidden = self.y_navLineHidden;
         self.y_navLine.hidden = YES;
         self.edgesForExtendedLayout = UIRectEdgeNone;
     }
 }
-
+- (BOOL)isLocalUsed {
+    id isLocal = objc_getAssociatedObject(self, &kWRIsLocalUsedKey);
+    return (isLocal != nil) ? [isLocal boolValue] : NO;
+}
+- (NSArray<NSString *> *)blacklist {
+    NSArray<NSString *> *list = (NSArray<NSString *> *)objc_getAssociatedObject(self, &kWRBlacklistKey);
+    return (list != nil) ? list : nil;
+}
+- (void)mj_setBlacklist:(NSArray<NSString *> *)list {
+    NSAssert(list, @"list 不能设置为nil");
+    NSAssert(![self isLocalUsed], @"黑名单是在设置 广泛使用 该库的情况下使用的");
+    objc_setAssociatedObject(self, &kWRBlacklistKey, list, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
 - (void)setY_navBarAlpha:(CGFloat)y_navBarAlpha{
     
     [self changeNavBarAlpha:y_navBarAlpha];

@@ -12,7 +12,7 @@
 NS_ASSUME_NONNULL_BEGIN
 #define BarTextColor [UIColor blackColor]
 
-#define BarBgColor   [UIColor whiteColor]
+#define BarBgColor   [UIColor colorWithWhite:0.1 alpha:1.0]
 @interface UIViewController (MJNavigationBar)
 /**
  *导航栏高度
