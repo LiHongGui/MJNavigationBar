@@ -21,10 +21,9 @@
 #pragma mark-statusBarStyle
 +(void)statusBarStyleColor:(UIColor *)statusColor
 {
-    if (statusColor == [UIColor whiteColor]) {
-        [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent animated:NO];
-    }else {
-        [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleDefault animated:NO];
+    if (CGColorEqualToColor(statusColor.CGColor,[UIColor whiteColor].CGColor)) {
+        [UIApplication sharedApplication].statusBarStyle = UIStatusBarStyleLightContent;    }else {
+        [UIApplication sharedApplication].statusBarStyle = UIStatusBarStyleDefault;
     }
 }
 #pragma mark-导航栏高度

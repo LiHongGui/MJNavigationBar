@@ -138,7 +138,7 @@ static char kWRBlacklistKey;
     NSLog(@"[self blacklist]:%@---vcStr:%@",[self blacklist],vcStr);
     if (![[self blacklist] containsObject:vcStr]) {
         UINavigationController *na = [self isKindOfClass:[UINavigationController class]]?(UINavigationController *)self:self.navigationController;
-        na.navigationBar.barTintColor = vc.y_navBarBgColor?: [UIColor blackColor];
+        na.navigationBar.barTintColor = vc.y_navBarBgColor?: BarBgColor;
         na.navigationBar.tintColor = vc.y_navBarTextColor?: [UIColor whiteColor];
         NSDictionary *attributes=[NSDictionary dictionaryWithObjectsAndKeys:vc.y_navBarTextColor?:[UIColor whiteColor],NSForegroundColorAttributeName,[UIFont systemFontOfSize:18],NSFontAttributeName,nil];
         na.navigationBar.titleTextAttributes = attributes;
@@ -158,10 +158,25 @@ static char kWRBlacklistKey;
         } else {
             // Fallback on earlier versions
         }
+    }else {
+        UINavigationController *na = [self isKindOfClass:[UINavigationController class]]?(UINavigationController *)self:self.navigationController;
+        na.navigationBar.barTintColor = BarBgColor;
+        na.navigationBar.backgroundColor = BarBgColor;
+        [na.navigationBar setBackgroundImage:[self createImageWithColor:BarBgColor withRect:CGRectMake(0, 0, 1, 1)] forBarMetrics:UIBarMetricsDefault];
     }
 }
 
-
+-(UIImage*)createImageWithColor:(UIColor*)color withRect:(CGRect)rect
+{
+    //    rect=CGRectMake(0.0f, 0.0f, 1.0f, 1.0f);
+    UIGraphicsBeginImageContext(rect.size);
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    CGContextSetFillColorWithColor(context, [color CGColor]);
+    CGContextFillRect(context, rect);
+    UIImage *theImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return theImage;
+}
 - (UIImageView *)findHairlineImageViewUnder:(UIView *)view {
     if ([view isKindOfClass:UIImageView.class] && view.bounds.size.height <= 1.0) {
         return (UIImageView *)view;
@@ -235,33 +250,37 @@ static char kWRBlacklistKey;
 - (void)changeNavBarAlpha:(CGFloat)alpha{
 
     if (self.navigationController&&!self.navigationController.y_contentView) {
-        UIView *view = [[UIView alloc] init];
-        self.navigationController.y_contentView = view;
-        [self.navigationController.navigationBar insertSubview:view atIndex:0];
-        [view mas_makeConstraints:^(MASConstraintMaker *make) {
-            make.bottom.left.right.equalTo(@0);
-            make.top.equalTo(@(-[UIApplication sharedApplication].statusBarFrame.size.height));
-        }];
-        UIImageView *imgV = [[UIImageView alloc] init];
-        [view addSubview:imgV];
-        [imgV mas_makeConstraints:^(MASConstraintMaker *make) {
-            make.top.right.left.bottom.equalTo(@0);
-        }];
-        self.navigationController.y_contentViewImgV = imgV;
+//        UIView *view = [[UIView alloc] init];
+//        self.navigationController.y_contentView = view;
+//        [self.navigationController.navigationBar insertSubview:view atIndex:0];
+//        [view mas_makeConstraints:^(MASConstraintMaker *make) {
+//            make.bottom.left.right.equalTo(@0);
+//            make.top.equalTo(@(-[UIApplication sharedApplication].statusBarFrame.size.height));
+//        }];
+//        UIImageView *imgV = [[UIImageView alloc] init];
+//        [view addSubview:imgV];
+//        [imgV mas_makeConstraints:^(MASConstraintMaker *make) {
+//            make.top.right.left.bottom.equalTo(@0);
+//        }];
+//        self.navigationController.y_contentViewImgV = imgV;
     }
-    
+    self.navigationController.navigationBar.barTintColor = self.y_navBarBgColor;
+    [self.navigationController.navigationBar setBackgroundColor:self.y_navBarBgColor];
     self.navigationController.y_contentView.backgroundColor = self.y_navBarBgColor;
     self.navigationController.y_contentView.alpha = alpha;
-    self.navigationController.y_contentViewImgV.image = self.y_navBarBgImg;
+//    self.navigationController.y_contentViewImgV.image = self.y_navBarBgImg;
+    [self.navigationController.navigationBar setBackgroundImage:self.y_navBarBgImg forBarMetrics:UIBarMetricsDefault];
     if (alpha<1) {
         [self.navigationController.navigationBar setShadowImage:[UIImage new]];
+        
     }else {
         [self.navigationController.navigationBar setShadowImage:[UIImage new]];
     }
     if (alpha<1||self.y_navBarHidden) {
         self.edgesForExtendedLayout = UIRectEdgeTop;
         self.y_navLine.hidden = YES;
-    }else{
+    }
+    else{
         self.y_navLine.hidden = YES;
         self.edgesForExtendedLayout = UIRectEdgeNone;
     }
